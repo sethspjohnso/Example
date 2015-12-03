@@ -8,18 +8,18 @@ import cosmolopy.distance as cd
 import sys, logging, os, re
 
 """
-    Overview of SATMC
-    
-    Required Python modules: Scipy, Numpy, Matplotlib, Cosmolopy
-    
-    Given an input observed SED and N SED templates, SATMC will
-    determine the best fit model parameters along with their 68%
-    confidence intervals using Monte Carlo Markov Chains and Bayesian
-    statistics.  By benefit of Bayes' theorem, additional contraints
-    may be imposed  through the use of parameter/likelihood priors.
-    
-    Seth Johnson 05/27/2013
-    """
+Overview of SATMC
+
+Required Python modules: Scipy, Numpy, Matplotlib, Cosmolopy
+
+Given an input observed SED and N SED templates, SATMC will 
+determine the best fit model parameters along with their 68% 
+confidence intervals using Monte Carlo Markov Chains and Bayesian 
+statistics.  By benefit of Bayes' theorem, additional contraints 
+may be imposed  through the use of parameter/likelihood priors. 
+
+Seth Johnson 05/27/2013
+"""
 
 np.seterr(divide='ignore') #ignore any divide by 0 errors
 
@@ -31,7 +31,6 @@ c=2.9979e14           #speed of light (microns/s)
 h=6.626e-27
 dist=50.              #Mpc
 z50=70.*50./3.e5      #Redshift at D=50 Mpc
-
 
 def cal_lum(sed):
     """
@@ -782,7 +781,10 @@ def satmc(filename,*args,**kwargs):
     with open(filename) as obsfile:
         units=obsfile.readline().splitlines()
     units=units[0].split()
-    data=np.genfromtxt(filename,skiprows=1,dtype=None)
+    #New information about genfromtxt() at http://docs.scipy.org/doc/numpy/reference/generated/numpy.genfromtxt.html
+    #skiprows was removed in numpy 1.10. Please use skip_header instead.
+    #data=np.genfromtxt(filename,skiprows=1,dtype=None)
+    data=np.genfromtxt(filename,dtype=None)
     wavel,flux,fluxerr,upperlim=[data[i] for i in data.dtype.names]
     if units[0].lower()[0] == 'l':
         wavel=(c/10**wavel)
