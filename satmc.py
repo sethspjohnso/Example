@@ -784,8 +784,9 @@ def satmc(filename,*args,**kwargs):
     #New information about genfromtxt() at http://docs.scipy.org/doc/numpy/reference/generated/numpy.genfromtxt.html
     #skiprows was removed in numpy 1.10. Please use skip_header instead.
     #data=np.genfromtxt(filename,skiprows=1,dtype=None)
-    data=np.genfromtxt(filename,dtype=None)
+    data=np.genfromtxt(filename,skip_header=1,dtype=None)
     wavel,flux,fluxerr,upperlim=[data[i] for i in data.dtype.names]
+
     if units[0].lower()[0] == 'l':
         wavel=(c/10**wavel)
     elif units[0].lower()[0] == 'a':
