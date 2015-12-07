@@ -6,6 +6,10 @@ import matplotlib.cm as cmx
 import multiprocessing as mp
 import cosmolopy.distance as cd
 import sys, logging, os, re
+#####
+#Modified by Lopez-Rodriguez, Enrique on Dec. 6, 2015
+import math as math
+#####
 
 """
 Overview of SATMC
@@ -99,6 +103,10 @@ def find_nearest_grid(grid,p):
         min_grid[i]=grid[max(ind,0),i]
         max_grid[i]=grid[min(ind+1,len(grid[:,0])-1),i]
     n_grid=np.column_stack((min_grid,max_grid))
+    #####
+    #Modified by Lopez-Rodriguez, Enrique on Dec. 6, 2015
+    min_grid[np.isneginf(min_grid)] = 0
+    ####
     intp=(p-min_grid)/(max_grid-min_grid)
     
     #check if interpolation points lie within the grid
@@ -443,6 +451,12 @@ def run_chain(queue,chain_id,nstep,params_init,lnl_init,seds,goodwavel,
                         lum=lum*params_new[norm]
                 else: pass
                 pgrid=seds[l].grid[int_grid,:]
+                
+                #####
+                #Modified by Lopez-Rodriguez, Enrique on Dec. 6, 2015
+                pgrid[np.isneginf(pgrid)] = 0
+                ####
+                
                 lum_arr[l]=interpol.griddata(pgrid,np.array(lum),(params_new[sel]).reshape((1,sum(sel))),method=method)
                 
                 t_obs=np.empty(0,dtype='object')
@@ -511,7 +525,14 @@ def run_chain(queue,chain_id,nstep,params_init,lnl_init,seds,goodwavel,
             maxl=max(l)
             l-=maxl
             l=np.exp(l)
-            l=interpol.griddata(mod_tot[:]['params'],l,
+            
+            #####
+            #Modified by Lopez-Rodriguez, Enrique on Dec. 6, 2015
+            mod_tot[:]['params'][np.isneginf(mod_tot[:]['params'])] = 0
+            caca = mod_tot[:]['params']
+            ####
+            
+            l=interpol.griddata(caca,l,
                                 (params_new[sel]).reshape((1,ndim)),
                                 method=method)
             lnL=np.log(max(l,np.exp(np.longdouble(-5000))))+maxl
@@ -541,6 +562,11 @@ def run_chain(queue,chain_id,nstep,params_init,lnl_init,seds,goodwavel,
             if n == 0:
                 alpha=min(1,np.exp((lnl_arr[n]-np.longdouble(lnl_init))/(1+temp)))
             else:
+                #####
+                #Modified by Lopez-Rodriguez, Enrique on Dec. 6, 2015
+                #aa = math.isinf(lnl_arr[n])
+                #if aa == True: lnl_arr[n] = 0.
+                ####
                 alpha=min(1,np.exp((lnl_arr[n]-lnl_arr[n-1])/(1+temp)))
             urand=np.random.random()
             if urand < alpha: param_arr[:,n]=params_new 
@@ -776,7 +802,13 @@ def satmc(filename,*args,**kwargs):
                 return
             if 'lum' not in tags and synthesis_model == None: sed=cal_lum(sed)
             seds[i]=sed_object(args[i],synthesis_model=synthesis_model)
-
+            
+            ####
+            #Modified by Lopez-Rodriguez, Enrique on Dec. 6, 2015
+            if sed[i].lum == 0:
+                seds[i]=sed_object(args[i],synthesis_model=synthesis_model)
+            ####
+            
     #read in file and units
     with open(filename) as obsfile:
         units=obsfile.readline().splitlines()
@@ -872,7 +904,12 @@ def satmc(filename,*args,**kwargs):
             axis[3]=max(goodflux)*10.
         if flam == False:
             plt.loglog(goodwavel,goodflux,'ks',mfc='none')
-            plt.errorbar(goodwavel,goodflux,goodfluxerr,fmt=None,ecolor='black')
+            ####
+            # Modified by Lopez-Rodriguez, Enrique o Dec. 6, 2015
+            # From fmt= None to fmt='none'
+            ####
+            plt.errorbar(goodwavel,goodflux,goodfluxerr,fmt='none',ecolor='black')
+            
             if n_bad > 0:
                 plt.errorbar(wavelim,fluxlim,fluxlim*.2,lolims=True,
                              ecolor='black')
@@ -882,7 +919,12 @@ def satmc(filename,*args,**kwargs):
             lfl=goodflux*3.e-9/goodwavel
             err=goodfluxerr*3.e-9/goodwavel
             plt.loglog(goodwavel,lfl,'ks',mfc='none')
-            plt.errorbar(goodwavel,lfl,err,fmt=None,ecolor='black')
+            ####
+            # Modified by Lopez-Rodriguez, Enrique o Dec. 6, 2015
+            # From fmt= None to fmt='none'
+            ####
+            plt.errorbar(goodwavel,lfl,err,fmt='none',ecolor='black')
+            
             if n_bad > 0:
                 lfl=fluxlim*3.e-9/wavelim
                 plt.errorbar(wavelim,fluxlim,fluxlim*.2,lolims=True,
